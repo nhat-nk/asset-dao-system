@@ -76,6 +76,28 @@
         </div>
     </div>
 
+    <div id="ranking-section" class="section">
+        <h2>Asset Holder Ranking</h2>
+
+        <div style="display:flex; gap:1rem; margin-bottom:1rem;">
+            <select id="ranking-asset-select"></select>
+
+            <select id="ranking-sort-select">
+                <option value="balance-desc">Token ↓</option>
+                <option value="balance-asc">Token ↑</option>
+                <option value="time-desc">Newest holders</option>
+                <option value="time-asc">Oldest holders</option>
+            </select>
+
+            <button id="load-ranking-btn">Load</button>
+        </div>
+
+        <div id="ranking-result">
+            <div class="loading">Select asset and load ranking</div>
+        </div>
+    </div>
+
+
     <script type="module" src="app.js"></script>
 </body>
 

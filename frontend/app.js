@@ -204,6 +204,9 @@ async function loadAssets() {
 
         list.innerHTML = '';
 
+        const assetSelect = document.getElementById('ranking-asset-select');
+        assetSelect.innerHTML = '<option value="">Select Asset</option>';
+
         if (logs.length === 0) {
             list.innerHTML = '<div class="loading">No assets found. Create one!</div>';
             return;
@@ -211,6 +214,13 @@ async function loadAssets() {
 
         for (const log of logs) {
             const { assetAddress, name, symbol, maxSupply, price } = log.args;
+
+            // Add asset to ranking dropdown
+            const option = document.createElement('option');
+            option.value = assetAddress;
+            option.innerText = name;
+            assetSelect.appendChild(option);
+
             const card = document.createElement('div');
             card.className = 'asset-card';
             card.innerHTML = `
@@ -399,8 +409,86 @@ window.redeem = async (address) => {
     }
 };
 
+async function loadRanking() {
+    const assetAddress = document.getElementById('ranking-asset-select').value;
+    const sortType = document.getElementById('ranking-sort-select').value;
+    const resultDiv = document.getElementById('ranking-result');
+
+    resultDiv.innerHTML = '<div class="loading">Loading ranking...</div>';
+
+    try {
+        const logs = await publicClient.getContractEvents({
+            address: assetAddress,
+            abi: [{
+                "anonymous": false,
+                "inputs": [
+                    { "indexed": true, "name": "from", "type": "address" },
+                    { "indexed": true, "name": "to", "type": "address" },
+                    { "indexed": false, "name": "value", "type": "uint256" }
+                ],
+                "name": "Transfer",
+                "type": "event"
+            }],
+            eventName: 'Transfer',
+            fromBlock: 'earliest'
+        });
+
+        const holders = new Map();
+
+        for (const log of logs) {
+            const { from, to, value } = log.args;
+            const block = log.blockNumber;
+
+            if (from !== '0x0000000000000000000000000000000000000000') {
+                const prev = holders.get(from) || { balance: 0n, lastBlock: 0n };
+                prev.balance -= value;
+                holders.set(from, prev);
+            }
+
+            const rec = holders.get(to) || { balance: 0n, lastBlock: 0n };
+            rec.balance += value;
+            rec.lastBlock = block;
+            holders.set(to, rec);
+        }
+
+        let arr = [...holders.entries()]
+            .filter(([_, v]) => v.balance > 0n)
+            .map(([addr, v]) => ({ address: addr, ...v }));
+
+        if (sortType === 'balance-desc')
+            arr.sort((a, b) => (b.balance > a.balance ? 1 : -1));
+        if (sortType === 'balance-asc')
+            arr.sort((a, b) => (a.balance > b.balance ? 1 : -1));
+        if (sortType === 'time-desc')
+            arr.sort((a, b) => Number(b.lastBlock - a.lastBlock));
+        if (sortType === 'time-asc')
+            arr.sort((a, b) => Number(a.lastBlock - b.lastBlock));
+
+        let html = `<table style="width:100%; font-size:0.9rem">
+            <tr><th>#</th><th>Address</th><th>Balance</th><th>Last Block</th></tr>`;
+
+        arr.forEach((h, i) => {
+            html += `
+              <tr>
+                <td>${i + 1}</td>
+                <td style="font-family:monospace">${h.address.slice(0, 8)}...${h.address.slice(-6)}</td>
+                <td>${formatEther(h.balance)}</td>
+                <td>${h.lastBlock}</td>
+              </tr>`;
+        });
+
+        html += `</table>`;
+        resultDiv.innerHTML = html;
+
+    } catch (e) {
+        console.error(e);
+        resultDiv.innerHTML = '<div style="color:red">Error loading ranking</div>';
+    }
+}
+
 // --- Event Listeners ---
 document.getElementById('connect-btn').addEventListener('click', connectWallet);
 document.getElementById('faucet-btn').addEventListener('click', getFaucet);
 document.getElementById('create-asset-btn').addEventListener('click', createAsset);
 document.getElementById('refresh-assets-btn').addEventListener('click', loadAssets);
+document.getElementById('load-ranking-btn').addEventListener('click', loadRanking);
