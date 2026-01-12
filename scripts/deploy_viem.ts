@@ -56,20 +56,22 @@ async function main() {
     const factoryAddress = receipt2.contractAddress!;
     console.log("AssetFactory deployed at:", factoryAddress);
 
-    // Update app.js
-    updateAppJs(vndAddress, factoryAddress);
+    // Generate config.js
+    const configContent = `
+export const FACTORY_ADDRESS = '${factoryAddress}';
+export const VNDHUST_ADDRESS = '${vndAddress}';
+
+export const FACTORY_ABI = ${JSON.stringify(factoryArtifact.abi, null, 3)};
+export const VNDHUST_ABI = ${JSON.stringify(vndArtifact.abi, null, 3)};
+export const ASSET_ABI = ${JSON.stringify(require('../artifacts/contracts/AssetToken.sol/AssetToken.json').abi, null, 3)};
+`;
+
+    fs.writeFileSync(path.resolve('frontend/config.js'), configContent);
+    console.log("Generated frontend/config.js with new addresses and ABIs.");
 }
 
-function updateAppJs(vndAddress: string, factoryAddress: string) {
-    const appJsPath = path.resolve('frontend/app.js');
-    let content = fs.readFileSync(appJsPath, 'utf8');
-
-    // Regex to replace addresses
-    content = content.replace(/const FACTORY_ADDRESS = '0x[a-fA-F0-9]+';/, `const FACTORY_ADDRESS = '${factoryAddress}';`);
-    content = content.replace(/const VNDHUST_ADDRESS = '0x[a-fA-F0-9]+';/, `const VNDHUST_ADDRESS = '${vndAddress}';`);
-
-    fs.writeFileSync(appJsPath, content);
-    console.log("Updated app.js with new addresses.");
-}
+// Helper to require JSON in ES module context (or just use fs)
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 
 main().catch(console.error);
