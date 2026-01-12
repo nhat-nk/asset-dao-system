@@ -1,5 +1,5 @@
 
-import { createPublicClient, createWalletClient, http, parseEther, defineChain } from 'viem';
+import { createPublicClient, createWalletClient, http, parseEther, defineChain, type Abi } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import fs from 'fs';
 import path from 'path';
@@ -39,29 +39,29 @@ async function main() {
     // Deploy VNDhust
     console.log("Deploying VNDhust...");
     const hash1 = await client.deployContract({
-        abi: vndArtifact.abi,
+        abi: vndArtifact.abi as any,
         bytecode: vndArtifact.bytecode,
     });
     const receipt1 = await publicClient.waitForTransactionReceipt({ hash: hash1 });
-    const vndAddress = receipt1.contractAddress;
+    const vndAddress = receipt1.contractAddress!;
     console.log("VNDhust deployed at:", vndAddress);
 
     // Deploy AssetFactory
     console.log("Deploying AssetFactory...");
     const hash2 = await client.deployContract({
-        abi: factoryArtifact.abi,
+        abi: factoryArtifact.abi as any,
         bytecode: factoryArtifact.bytecode,
     });
     const receipt2 = await publicClient.waitForTransactionReceipt({ hash: hash2 });
-    const factoryAddress = receipt2.contractAddress;
+    const factoryAddress = receipt2.contractAddress!;
     console.log("AssetFactory deployed at:", factoryAddress);
 
     // Update app.js
     updateAppJs(vndAddress, factoryAddress);
 }
 
-function updateAppJs(vndAddress, factoryAddress) {
-    const appJsPath = path.resolve('app.js');
+function updateAppJs(vndAddress: string, factoryAddress: string) {
+    const appJsPath = path.resolve('frontend/app.js');
     let content = fs.readFileSync(appJsPath, 'utf8');
 
     // Regex to replace addresses
