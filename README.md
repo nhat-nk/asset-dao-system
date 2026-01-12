@@ -1,57 +1,106 @@
-# Sample Hardhat 3 Beta Project (`node:test` and `viem`)
+# RWA Tokenization Platform
 
-This project showcases a Hardhat 3 Beta project using the native Node.js test runner (`node:test`) and the `viem` library for Ethereum interactions.
+Nền tảng Token hóa Tài sản Thực (Real World Asset) phi tập trung, cho phép tạo, mua bán và quản lý tài sản trên Blockchain.
 
-To learn more about the Hardhat 3 Beta, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3 Beta](https://hardhat.org/hardhat3-beta-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+## 📋 Yêu cầu hệ thống
 
-## Project Overview
+- [Node.js](https://nodejs.org/) (v18 trở lên)
+- [Git](https://git-scm.com/)
 
-This example project includes:
+## 🛠 Cài đặt
 
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
+1.  **Clone project:**
+    ```bash
+    git clone <repo-url>
+    cd rwa-tokenization
+    ```
 
-## Usage
+2.  **Cài đặt dependencies:**
+    ```bash
+    npm install
+    ```
 
-### Running Tests
+3.  **Cấu hình môi trường:**
+    -   Copy file `.env.example` thành `.env`:
+        ```bash
+        cp .env.example .env
+    # Hoặc trên Windows CMD:
+        copy .env.example .env
+        ```
+    -   Cập nhật thông tin trong `.env` (nếu dùng Testnet):
+        -   `PRIVATE_KEY`: Private key ví deploy (cần có ETH Sepolia).
+        -   `SEPOLIA_RPC_URL`: URL RPC của mạng Sepolia (lấy từ Alchemy/Infura).
 
-To run all the tests in the project, execute the following command:
+---
 
-```shell
-npx hardhat test
+## 🚀 Hướng dẫn chạy
+
+### 1. Chạy trên Localhost (Khuyên dùng cho Dev/Test)
+
+Môi trường Localhost dùng mạng blockchain giả lập trên máy, tốc độ nhanh, tiền ETH miễn phí, reset dễ dàng.
+
+**Bước 1: Khởi chạy Local Blockchain**
+Mở một terminal **mới** và chạy:
+```bash
+npx hardhat node
+```
+*Giữ terminal này chạy suốt quá trình dev.*
+
+**Bước 2: Deploy Smart Contracts**
+Mở một terminal **khác** và chạy:
+```bash
+npx ts-node scripts/deploy_viem.ts
+```
+*Lệnh này sẽ deploy contract và **tự động** cập nhật địa chỉ vào file `frontend/app.js`.*
+
+**Bước 3: Chạy Frontend**
+Trong terminal thứ 2 (hoặc mở cái mới), chạy:
+```bash
+python -m http.server 8000 --directory frontend
+```
+*Truy cập [http://localhost:8000](http://localhost:8000) để sử dụng.*
+
+> **Lưu ý:** Mỗi lần bạn tắt/bật lại `npx hardhat node`, bạn **bắt buộc** phải chạy lại lệnh deploy (Bước 2) để cập nhật contract mới.
+
+---
+
+### 2. Chạy trên Sepolia Testnet (Demo/Production)
+
+Môi trường Testnet dữ liệu được lưu vĩnh viễn, phù hợp để demo sản phẩm.
+
+**Bước 1: Chuẩn bị ví**
+- Đảm bảo trong `.env` đã có `PRIVATE_KEY` và `SEPOLIA_RPC_URL`.
+- Ví deploy phải có sẵn **Sepolia ETH** (lấy tại [Google Cloud Faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia) hoặc [LearnWeb3 Faucet](https://learnweb3.io/faucets/sepolia/)).
+
+**Bước 2: Deploy Smart Contracts**
+Chạy lệnh deploy với mạng Sepolia:
+```bash
+npx hardhat run scripts/deploy_viem.ts --network sepolia
 ```
 
-You can also selectively run the Solidity or `node:test` tests:
-
-```shell
-npx hardhat test solidity
-npx hardhat test nodejs
+**Bước 3: Chạy Frontend**
+```bash
+python -m http.server 8000 --directory frontend
 ```
+*Lúc này Frontend sẽ kết nối với contract trên Sepolia. Nhớ chuyển ví Metamask sang mạng **Sepolia** khi sử dụng.*
 
-### Make a deployment to Sepolia
+---
 
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
+## 📂 Cấu trúc Project
 
-To run the deployment to a local chain:
+- `contracts/`: Source code Solidity (VNDhust.sol, AssetFactory.sol, AssetToken.sol).
+- `scripts/`: Script deploy (deploy_viem.ts).
+- `frontend/`: Giao diện web đơn giản (HTML/CSS/JS).
+- `hardhat.config.ts`: Cấu hình Hardhat.
+- `test/`: Unit tests.
 
-```shell
-npx hardhat ignition deploy ignition/modules/Counter.ts
-```
+## ❓ Troubleshooting
 
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
+**Lỗi: `Nonce too high` hoặc Transaction bị pending mãi trên Localhost**
+- **Nguyên nhân:** Do Metamask lưu cache nonce cũ của lần chạy node trước.
+- **Khắc phục:** Mở Metamask -> Settings -> Advanced -> **Clear activity tab data**.
 
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
-
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
-
-```shell
-npx hardhat keystore set SEPOLIA_PRIVATE_KEY
-```
-
-After setting the variable, you can run the deployment with the Sepolia network:
-
-```shell
-npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
-```
+**Lỗi: Frontend không hiện dữ liệu**
+- Kiểm tra xem đã chạy `npx hardhat node` chưa?
+- Kiểm tra xem đã chạy `deploy` lại sau khi restart node chưa?
+- Kiểm tra Metamask đã kết nối đúng mạng (Localhost 8545) chưa?
