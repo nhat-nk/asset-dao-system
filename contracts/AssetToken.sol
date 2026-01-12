@@ -22,9 +22,9 @@ contract AssetToken is ERC20, Ownable {
 
     /// @notice Các trạng thái vòng đời của tài sản
     enum AssetState {
-        OPEN,       // Đang mở bán
-        FOR_SALE,   // Đã duyệt bán
-        SOLD        // Đã thanh lý
+        OPEN, // Đang mở bán
+        FOR_SALE, // Đã duyệt bán
+        SOLD // Đã thanh lý
     }
 
     /// @notice Trạng thái hiện tại của tài sản
@@ -59,7 +59,11 @@ contract AssetToken is ERC20, Ownable {
     event Unvoted(address indexed voter, uint256 amount);
     event SaleApproval(uint256 totalVotes);
     event ProceedsDistributed(uint256 totalAmount, uint256 pricePerToken);
-    event Redemmed(address indexed user, uint256 tokenAmount, uint256 valueReceived);
+    event Redemmed(
+        address indexed user,
+        uint256 tokenAmount,
+        uint256 valueReceived
+    );
 
     /**
      * @notice Khởi tạo contract AssetToken.
@@ -89,18 +93,30 @@ contract AssetToken is ERC20, Ownable {
      * @notice Mua token tài sản bằng VNDhust.
      */
     function buy(uint256 amount) external {
-        require(currentState == AssetState.OPEN, "AssetToken: Not open for sale");
+        require(
+            currentState == AssetState.OPEN,
+            "AssetToken: Not open for sale"
+        );
         require(amount > 0, "AssetToken: Amount must be > 0");
 
-        require(totalSupply() + amount <= maxSupply, "AssetToken: Sold out / Not enough tokens left");
+        require(
+            totalSupply() + amount <= maxSupply,
+            "AssetToken: Sold out / Not enough tokens left"
+        );
 
         uint256 userNewBalance = balanceOf(msg.sender) + amount;
         uint256 limit = (maxSupply * MAX_OWNERSHIP_PERCENT) / 100;
 
-        require(userNewBalance <= limit, "AssetToken: Exceed 50% ownership limit");
+        require(
+            userNewBalance <= limit,
+            "AssetToken: Exceed 50% ownership limit"
+        );
 
         uint256 cost = amount * pricePerToken;
-        require(paymentToken.transferFrom(msg.sender, address(this), cost), "AssetToken: Payment failed");
+        require(
+            paymentToken.transferFrom(msg.sender, address(this), cost),
+            "AssetToken: Payment failed"
+        );
 
         _mint(msg.sender, amount);
         emit Bought(msg.sender, amount);
@@ -110,8 +126,14 @@ contract AssetToken is ERC20, Ownable {
      * @notice Bỏ phiếu thanh lý tài sản
      */
     function voteForSale() external {
-        require(currentState == AssetState.OPEN, "AssetToken: Already for sale or sold");
-        require(balanceOf(msg.sender) > 0, "AssetToken: Must hold tokens to vote");
+        require(
+            currentState == AssetState.OPEN,
+            "AssetToken: Already for sale or sold"
+        );
+        require(
+            balanceOf(msg.sender) > 0,
+            "AssetToken: Must hold tokens to vote"
+        );
         require(!hasVoted[msg.sender], "AssetToken: Already voted");
 
         uint256 amount = balanceOf(msg.sender);
@@ -130,7 +152,10 @@ contract AssetToken is ERC20, Ownable {
      * @notice Unvote
      */
     function unvote() external {
-        require(currentState == AssetState.OPEN, "AssetToken: Cannot unvote now");
+        require(
+            currentState == AssetState.OPEN,
+            "AssetToken: Cannot unvote now"
+        );
         require(hasVoted[msg.sender], "AssetToken: Have not voted yet");
 
         uint256 amount = balanceOf(msg.sender);
@@ -145,7 +170,10 @@ contract AssetToken is ERC20, Ownable {
      * @notice Rút tiền
      */
     function redeem() external {
-        require(currentState == AssetState.SOLD, "AssetToken: Asset not yet sold");
+        require(
+            currentState == AssetState.SOLD,
+            "AssetToken: Asset not yet sold"
+        );
 
         uint256 amount = balanceOf(msg.sender);
         require(amount > 0, "AssetToken: No Tokens to redeem");
@@ -154,17 +182,39 @@ contract AssetToken is ERC20, Ownable {
 
         _burn(msg.sender, amount);
 
-        require(paymentToken.transfer(msg.sender, payout), "AssetToken: Transfer failed");
+        require(
+            paymentToken.transfer(msg.sender, payout),
+            "AssetToken: Transfer failed"
+        );
 
         emit Redemmed(msg.sender, amount, payout);
     }
 
     // --- ADMIN FUNCTIONS ---
 
+    /**
+     * @notice Admin rút tiền vốn để đi mua tài sản thực.
+     */
+    function withdrawFunds() external onlyOwner {
+        uint256 balance = paymentToken.balanceOf(address(this));
+        require(balance > 0, "No funds to withdraw");
+        require(paymentToken.transfer(msg.sender, balance), "Transfer failed");
+    }
+
     function distributeProceeds(uint256 totalVNDAmount) external onlyOwner {
-        require(currentState == AssetState.FOR_SALE, "AssetToken: Asset not ready for sale");
+        require(
+            currentState == AssetState.FOR_SALE,
+            "AssetToken: Asset not ready for sale"
+        );
         require(totalVNDAmount > 0, "Amount must be > 0");
-        require(paymentToken.transferFrom(msg.sender, address(this), totalVNDAmount), "Transfer failed");
+        require(
+            paymentToken.transferFrom(
+                msg.sender,
+                address(this),
+                totalVNDAmount
+            ),
+            "Transfer failed"
+        );
 
         finalRedeemPrice = totalVNDAmount / totalSupply();
 
