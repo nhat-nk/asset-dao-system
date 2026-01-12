@@ -1,5 +1,4 @@
-
-import { createPublicClient, createWalletClient, http, parseEther, defineChain, type Abi } from 'viem';
+import { createPublicClient, createWalletClient, http, defineChain } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import fs from 'fs';
 import path from 'path';
@@ -35,6 +34,8 @@ async function main() {
     // Read Artifacts
     const vndArtifact = JSON.parse(fs.readFileSync(path.resolve('artifacts/contracts/VNDhust.sol/VNDhust.json'), 'utf8'));
     const factoryArtifact = JSON.parse(fs.readFileSync(path.resolve('artifacts/contracts/AssetFactory.sol/AssetFactory.json'), 'utf8'));
+    const assetArtifact = JSON.parse(fs.readFileSync(path.resolve('artifacts/contracts/AssetToken.sol/AssetToken.json'), 'utf8'));
+
 
     // Deploy VNDhust
     console.log("Deploying VNDhust...");
@@ -63,15 +64,11 @@ export const VNDHUST_ADDRESS = '${vndAddress}';
 
 export const FACTORY_ABI = ${JSON.stringify(factoryArtifact.abi, null, 3)};
 export const VNDHUST_ABI = ${JSON.stringify(vndArtifact.abi, null, 3)};
-export const ASSET_ABI = ${JSON.stringify(require('../artifacts/contracts/AssetToken.sol/AssetToken.json').abi, null, 3)};
+export const ASSET_ABI = ${JSON.stringify(assetArtifact.abi, null, 3)};
 `;
 
     fs.writeFileSync(path.resolve('frontend/config.js'), configContent);
     console.log("Generated frontend/config.js with new addresses and ABIs.");
 }
-
-// Helper to require JSON in ES module context (or just use fs)
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
 
 main().catch(console.error);
