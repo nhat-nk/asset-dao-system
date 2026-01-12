@@ -1,106 +1,133 @@
-# RWA Tokenization Platform
+# 🏢 Real World Asset (RWA) Tokenization DAO
 
-Nền tảng Token hóa Tài sản Thực (Real World Asset) phi tập trung, cho phép tạo, mua bán và quản lý tài sản trên Blockchain.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Solidity](https://img.shields.io/badge/Solidity-%5E0.8.28-363636.svg?logo=solidity)
+![Hardhat](https://img.shields.io/badge/Built%20with-Hardhat-yellow.svg)
+![Viem](https://img.shields.io/badge/Frontend-Viem-orange)
 
-## 📋 Yêu cầu hệ thống
+Một hệ thống **DAO (Decentralized Autonomous Organization)** đơn giản cho phép token hóa tài sản thực (Real World Assets), mở bán cho cộng đồng, và quản lý quy trình thanh lý tài sản thông qua cơ chế bỏ phiếu on-chain.
 
-- [Node.js](https://nodejs.org/) (v18 trở lên)
-- [Git](https://git-scm.com/)
-
-## 🛠 Cài đặt
-
-1.  **Clone project:**
-    ```bash
-    git clone <repo-url>
-    cd rwa-tokenization
-    ```
-
-2.  **Cài đặt dependencies:**
-    ```bash
-    npm install
-    ```
-
-3.  **Cấu hình môi trường:**
-    -   Copy file `.env.example` thành `.env`:
-        ```bash
-        cp .env.example .env
-    # Hoặc trên Windows CMD:
-        copy .env.example .env
-        ```
-    -   Cập nhật thông tin trong `.env` (nếu dùng Testnet):
-        -   `PRIVATE_KEY`: Private key ví deploy (cần có ETH Sepolia).
-        -   `SEPOLIA_RPC_URL`: URL RPC của mạng Sepolia (lấy từ Alchemy/Infura).
+Dự án bao gồm Smart Contracts (Solidity) và giao diện Frontend (Vanilla JS) để tương tác trực tiếp với Localhost Blockchain.
 
 ---
 
-## 🚀 Hướng dẫn chạy
+## 🌟 Tính Năng Chính
 
-### 1. Chạy trên Localhost (Khuyên dùng cho Dev/Test)
+*   **🏭 Asset Factory:** Tạo các tài sản mới (Asset Token) một cách dễ dàng với Factory Partner.
+*   **🪙 Token Hóa Tài Sản:** Mỗi tài sản là một ERC20 token riêng biệt.
+*   **💰 Mua Bán (Invest):** Người dùng dùng token thanh toán (`VNDhust`) để mua cổ phần tài sản (giới hạn tối đa 50% mỗi người).
+*   **🗳️ Bỏ Phiếu Thanh Lý (DAO Voting):** Cổ đông có thể bỏ phiếu `Vote for Sale`. Nếu >50% cổ phần đồng ý, trạng thái tài sản chuyển sang `FOR_SALE`.
+*   **💸 Phân Phối Lợi Nhuận:** Admin (hoặc người mua lại tài sản thực) nạp lại tiền vào Contract để mua lại toàn bộ token.
+*   **🔥 Redeem (Rút Vốn):** Cổ đông đổi (burn) token tài sản để nhận lại tiền (`VNDhust`) + lợi nhuận sau khi thanh lý.
 
-Môi trường Localhost dùng mạng blockchain giả lập trên máy, tốc độ nhanh, tiền ETH miễn phí, reset dễ dàng.
+---
 
-**Bước 1: Khởi chạy Local Blockchain**
-Mở một terminal **mới** và chạy:
+## 🛠️ Công Nghệ Sử Dụng
+
+*   **Smart Contracts:** Solidity `^0.8.28`, OpenZeppelin (ERC20, Ownable).
+*   **Blockchain Framework:** Hardhat, Hardhat Ignition (Deployment).
+*   **Frontend:** HTML5, CSS3, Vanilla JavaScript.
+*   **Web3 Library:** [Viem](https://viem.sh/) (thư viện tương tác Blockchain hiệu năng cao).
+*   **Local Network:** Hardhat Node.
+
+---
+
+## 🚀 Cài Đặt & Chạy Dự Án
+
+### 1. Yêu Cầu
+*   [Node.js](https://nodejs.org/) (v16 trở lên)
+*   [MetaMask](https://metamask.io/) (Extension trình duyệt)
+
+### 2. Cài Đặt Dependencies
+Mở terminal tại thư mục gốc của dự án và chạy:
+
+```bash
+npm install
+```
+
+### 3. Khởi Động Local Blockchain
+Chạy Hardhat Node để tạo mạng blockchain cục bộ (lưu ý: **không** tắt terminal này khi đang test):
+
 ```bash
 npx hardhat node
 ```
-*Giữ terminal này chạy suốt quá trình dev.*
+*Terminal này sẽ hiển thị danh sách 20 ví test có sẵn 10,000 ETH.*
 
-**Bước 2: Deploy Smart Contracts**
-Mở một terminal **khác** và chạy:
+### 4. Deploy Smart Contracts
+Mở một terminal **mới**, chạy lệnh deploy sử dụng Hardhat Ignition:
+
 ```bash
-npx ts-node scripts/deploy_viem.ts
+npx hardhat ignition deploy ./ignition/modules/RWA.ts --network localhost
 ```
-*Lệnh này sẽ deploy contract và **tự động** cập nhật địa chỉ vào file `frontend/app.js`.*
+*Lưu lại địa chỉ contract `VNDhust` và `AssetFactory` nếu cần, hoặc hệ thống frontend sẽ tự động đọc từ file config nếu đã được cấu hình.*
 
-**Bước 3: Chạy Frontend**
-Trong terminal thứ 2 (hoặc mở cái mới), chạy:
+### 5. Config Frontend (Tự động hoặc Thủ công)
+Kiểm tra file `frontend/config.js`. Đảm bảo địa chỉ contract khớp với địa chỉ vừa deploy (thường Hardhat Localhost sẽ giữ nguyên địa chỉ nếu không reset node, nhưng hãy kiểm tra lại nếu frontend không load được).
+
+### 6. Chạy Frontend
+Dùng `http-server` để chạy giao diện web:
+
 ```bash
-python -m http.server 8000 --directory frontend
+npx http-server frontend
 ```
-*Truy cập [http://localhost:8000](http://localhost:8000) để sử dụng.*
-
-> **Lưu ý:** Mỗi lần bạn tắt/bật lại `npx hardhat node`, bạn **bắt buộc** phải chạy lại lệnh deploy (Bước 2) để cập nhật contract mới.
+Truy cập trình duyệt tại: `http://127.0.0.1:8080`
 
 ---
 
-### 2. Chạy trên Sepolia Testnet (Demo/Production)
+## 📚 Hướng Dẫn Sử Dụng Chi Tiết
 
-Môi trường Testnet dữ liệu được lưu vĩnh viễn, phù hợp để demo sản phẩm.
+### B1: Kết Nối Ví (MetaMask)
+1.  Cài đặt mạng **Localhost 8545** trong MetaMask (Chain ID: `31337`, RPC: `http://127.0.0.1:8545`).
+2.  Import một trong các Private Key từ terminal chạy `npx hardhat node` vào MetaMask.
+3.  Nhấn nút **Connect Wallet** trên giao diện web.
 
-**Bước 1: Chuẩn bị ví**
-- Đảm bảo trong `.env` đã có `PRIVATE_KEY` và `SEPOLIA_RPC_URL`.
-- Ví deploy phải có sẵn **Sepolia ETH** (lấy tại [Google Cloud Faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia) hoặc [LearnWeb3 Faucet](https://learnweb3.io/faucets/sepolia/)).
+### B2: Nhận Tiền Test (Faucet)
+*   Nhấn nút **Get 1,000,000 VNDH (Faucet)** để nhận tiền giả định dùng cho việc mua tài sản.
 
-**Bước 2: Deploy Smart Contracts**
-Chạy lệnh deploy với mạng Sepolia:
-```bash
-npx hardhat run scripts/deploy_viem.ts --network sepolia
-```
+### B3: Tạo Tài Sản (Create Asset)
+*   Nhập thông tin: `Tên`, `Mã (Symbol)`, `Tổng Cung`, `Giá (VNDH)`.
+*   Nhấn **Create Asset**.
+*   Xác nhận giao dịch trên MetaMask.
 
-**Bước 3: Chạy Frontend**
-```bash
-python -m http.server 8000 --directory frontend
-```
-*Lúc này Frontend sẽ kết nối với contract trên Sepolia. Nhớ chuyển ví Metamask sang mạng **Sepolia** khi sử dụng.*
+### B4: Mua Tài Sản (Buy)
+*   Chọn tài sản trong danh sách.
+*   Nhập số lượng muốn mua.
+*   Nhấn **Buy Tokens** -> Hệ thống sẽ yêu cầu 2 transactions: **Approve** (cho phép trừ tiền) và **Buy** (mua).
+
+### B5: Bỏ Phiếu (Vote for Sale)
+*   Khi muốn bán tài sản, nhấn **Vote for Sale**.
+*   Khi đủ >50% số phiếu, trạng thái tài sản sẽ chuyển sang màu vàng: **FOR SALE**.
+
+### B6: Thanh Lý & Phân Phối (Distribute - Admin/Buyer)
+*   Khi trạng thái là **FOR SALE**, ô nhập tiền phân phối sẽ hiện ra.
+*   Nhập tổng số tiền thực nhận được khi bán tài sản (VNDH).
+*   Nhấn **Distribute Proceeds**. Trạng thái chuyển sang màu xanh: **SOLD**.
+
+### B7: Rút Tiền (Redeem)
+*   Người dùng nhấn **Redeem VNDH**.
+*   Token tài sản sẽ bị đốt (burn) và người dùng nhận lại số VNDH tương ứng với tỷ lệ sở hữu.
 
 ---
 
-## 📂 Cấu trúc Project
+## 📂 Cấu Trúc Dự Án
 
-- `contracts/`: Source code Solidity (VNDhust.sol, AssetFactory.sol, AssetToken.sol).
-- `scripts/`: Script deploy (deploy_viem.ts).
-- `frontend/`: Giao diện web đơn giản (HTML/CSS/JS).
-- `hardhat.config.ts`: Cấu hình Hardhat.
-- `test/`: Unit tests.
+```
+rwa-tokenization/
+├── contracts/              # Smart Contracts logic
+│   ├── AssetFactory.sol    # Quản lý tạo mới tài sản
+│   ├── AssetToken.sol      # Logic của từng tài sản (Vote, Buy, Redeem)
+│   └── VNDhust.sol         # Token thanh toán (Faucet)
+├── frontend/               # Giao diện người dùng
+│   ├── app.js              # Logic tương tác Blockchain (Viem)
+│   ├── config.js           # Chứa ABI và Address contract
+│   ├── index.html          # Giao diện chính
+│   └── styles.css          # Styling
+├── ignition/               # Script deploy (Hardhat Ignition)
+│   └── modules/
+│       └── RWA.ts
+├── hardhat.config.ts       # Cấu hình Hardhat
+└── package.json            # Dependencies
+```
 
-## ❓ Troubleshooting
-
-**Lỗi: `Nonce too high` hoặc Transaction bị pending mãi trên Localhost**
-- **Nguyên nhân:** Do Metamask lưu cache nonce cũ của lần chạy node trước.
-- **Khắc phục:** Mở Metamask -> Settings -> Advanced -> **Clear activity tab data**.
-
-**Lỗi: Frontend không hiện dữ liệu**
-- Kiểm tra xem đã chạy `npx hardhat node` chưa?
-- Kiểm tra xem đã chạy `deploy` lại sau khi restart node chưa?
-- Kiểm tra Metamask đã kết nối đúng mạng (Localhost 8545) chưa?
+## 📜 License
+Dự án được phát hành dưới giấy phép [MIT](LICENSE).
